@@ -1,0 +1,126 @@
+/*
+  elm-hot creates an additional div wrapper around the app to make HMR possible.
+  This could break styling in development mode if you are using Elm UI.
+  More context in the issue:
+    https://github.com/halfzebra/create-elm-app/issues/320
+*/
+[data-elm-hot="true"] {
+  height: inherit;
+}
+
+body {
+  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  text-align: center;
+  color: #293c4b;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+img {
+  margin: 20px 0;
+  max-width: 200px;
+}
+
+.reset-button {
+  font-size : 220%;
+  background: rgba(0, 0, 0, 0);
+}
+
+.victory {
+  font-size : 500%;
+  color: green;
+  font-weight: bold;
+}
+
+.defeat {
+  color: red;
+  font-weight: bold;
+}
+
+.headers{
+
+  display: grid;
+  grid-gap: 0.2%;
+  grid-auto-rows: minmax(8vh, auto);
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 2vh;
+  margin-bottom: 2vh;
+  margin-left: 10%;
+  margin-right: 10%;
+  /* position: fixed; */
+  /* z-index: 10; */
+}
+
+.wrapper {
+  display: grid;
+  justify-content: center;
+  /* grid-gap: 0.2%; */
+  grid-auto-rows: minmax(8vh, auto);
+  grid-template-columns: repeat(10, 8vh);
+  margin-top: 2vh;
+  margin-bottom: 2vh;
+  margin-left: 10%;
+  margin-right: 10%;
+
+}
+
+.case{
+  height: 7vh;
+  width: 7vh;
+  border: 1px solid;
+  font-size : 220%;
+}
+
+#bomb{
+  border: 5px solid black;
+  background-color: #8b0000;
+}
+
+#nb0{
+  border: dotted black;
+  background-color: white;
+}
+
+#nb1{
+  border: 1px solid black;
+  color: blue;
+
+}
+
+#nb2{
+  border: 2px solid black;
+  color: green;
+}
+
+#nb3{
+  border: 3px solid black;
+  color: red;
+}
+
+#nb4{
+  border: 4px solid black;
+  color: yellow;
+}
+
+#nb5{
+  border: 5px solid black;
+  color: purple;
+}
+
+#nb6{
+  border: 6px solid black;
+  color: black;
+}
+
+#nb7{
+  border: 7px solid black;
+  color: pink;
+}
+
+#nb8{
+  border: 8px solid black;
+  text-color: white;
+}
