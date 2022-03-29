@@ -1,0 +1,26 @@
+version: "3.0"
+services:
+  api:
+    container_name: gutenberg-api-container
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
+    ports:
+      - 80:80
+    networks:
+      - net
+
+  database:
+    # Official Postgres image from DockerHub (we use the last version)
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: gutenberg
+    ports:
+      - 25505:5432
+    # networks:
+    #   - net
+
+networks:
+  net:
+    driver: bridge
