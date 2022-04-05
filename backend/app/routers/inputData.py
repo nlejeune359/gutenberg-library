@@ -1,0 +1,61 @@
+from fastapi import APIRouter, HTTPException, Request, Depends
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from data.models import Books, Author
+from pydantic import BaseModel
+from typing import Optional, List
+from data.tokenize import createTokenList
+import utils as u
+import requests
+
+router = APIRouter(
+            prefix="/input",
+            tags=["manage", "data", "input"]
+            )
+
+
+db_sal = create_engine(u.db_string)
+Session = sessionmaker(db_sal)
+session = Session()
+
+
+class Book(BaseModel):
+    title: str
+    author_name: str
+    full_text_pointer: str
+
+
+@router.post("/book")
+async def input_new_books(books: List[Book]):
+    res = {}
+    for book in books:
+        author = session.query(Author).filter(Author.author_name == book.author_name).first()
+
+        if author is None:
+            # If author doesnt exist
+            author = Author(author_name=book.author_name)
+            session.add(author)
+            session.commit()
+            session.refresh(author)
+
+        bookAlreadyExist = session.query(Author).filter(Books.title == book.title and Books.author == author).first() is not None
+
+        if not bookAlreadyExist:
+            full_text_ = requests.get(book.full_text_pointer).text
+            newBook = Books(title=book.title, full_text=full_text_, author_id=author.id)
+
+            session.add(newBook)
+            session.commit()
+            session.refresh(newBook)
+
+            # Funny part bc it's very time expensive
+            tokenList = createTokenList(full_text_)
+
+            for token in tokenList:
+                pass
+
+        else:
+            res[book.title] = "Already exist"
+
+
+    return res

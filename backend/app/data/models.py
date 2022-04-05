@@ -36,6 +36,7 @@ class Historic(Base):
 
 class Books(Base):
     __tablename__ = "Books"
+    __table_args__ = ((UniqueConstraint('title', 'author_id')),)
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
     full_text = Column(String)
@@ -48,6 +49,7 @@ class Books(Base):
 
 class Author(Base):
     __tablename__ = "Author"
+    __table_args__ = ((UniqueConstraint('author_name')),)
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     author_name = Column(String)
     created_at = Column('created_at', TIMESTAMP(timezone=False),
@@ -68,6 +70,7 @@ class SearchResult(Base):
 
 class Tags(Base):
     __tablename__ = "Tags"
+    __table_args__ = ((UniqueConstraint('content')),)
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     content = Column(String)
     created_at = Column('created_at', TIMESTAMP(timezone=False),
@@ -77,6 +80,7 @@ class Tags(Base):
 # MAP
 class Tagmaps(Base):
     __tablename__ = "Tagmaps"
+    __table_args__ = ((UniqueConstraint('book_id', 'tag_id')),)
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column('timestamp', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
