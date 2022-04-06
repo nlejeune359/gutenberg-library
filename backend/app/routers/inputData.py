@@ -1,12 +1,13 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from data.models import Books, Author
+from data.models import Books, Author, Tags, Tagmaps
 from pydantic import BaseModel
 from typing import Optional, List
 from data.tokenize import createTokenList
 import utils as u
 import requests
+import uuid
 
 router = APIRouter(
             prefix="/input",
@@ -51,11 +52,27 @@ async def input_new_books(books: List[Book]):
             # Funny part bc it's very time expensive
             tokenList = createTokenList(full_text_)
 
+            newTokenCounter = 0
             for token in tokenList:
-                pass
+                tagDb = session.query(Tags).filter(Tags.content == token).first()
 
+                if not tagDb:
+                    newTokenCounter += 1
+                    tagDb = Tags(content=token, id=uuid.uuid4())
+                    session.add(tagDb)
+                    # session.commit()
+                    # session.refresh(tagDb)
+                # else:
+                #     tagDb = session.query(Tags).filter(Tags.content == token).first()
+
+                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id)
+                session.add(newTagsMap)
+
+            session.commit()
+            # session.refresh(newTagsMap)
+
+            res[book.title] = "Token detected : " + str(len(tokenList)) + " | New token :" + str(newTokenCounter)
         else:
             res[book.title] = "Already exist"
-
 
     return res

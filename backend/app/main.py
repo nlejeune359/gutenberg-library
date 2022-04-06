@@ -3,8 +3,12 @@ from sqlalchemy import create_engine
 from typing import Optional, List
 from data.models import Base
 from routers import inputData
+from fastapi_cprofile.profiler import CProfileMiddleware
 import utils as u
+
 app = FastAPI()
+app.add_middleware(CProfileMiddleware, enable=True, server_app = app, filename='/tmp/output.pstats', strip_dirs = False, sort_by='cumulative')
+
 
 @app.on_event("startup")
 async def startup_event():
