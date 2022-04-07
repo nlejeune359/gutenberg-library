@@ -53,21 +53,42 @@ async def input_new_books(books: List[Book]):
             tokenList = createTokenList(full_text_)
 
             newTokenCounter = 0
+            newTokenList = []
+            newTagsMapList = []
+
+            allTagsList = session.query(Tags).filter(Tags.content.in_(tokenList)).all()
+            allTagsDict = {}
+
+            for item in allTagsList:
+                allTagsDict[item.content] = item.id
+            del(allTagsList)
+
             for token in tokenList:
-                tagDb = session.query(Tags).filter(Tags.content == token).first()
+                try:
+                    tagDb = allTagsDict[token]
+                except:
+                    tagDb = False
+                #tagDb = session.query(Tags).filter(Tags.content == token).first()
 
                 if not tagDb:
                     newTokenCounter += 1
                     tagDb = Tags(content=token, id=uuid.uuid4())
-                    session.add(tagDb)
+                    newTokenList.append(tagDb)
+                else:
+                    tagDb = Tags(content=token, id=tagDb)
+
+                    # session.add(tagDb)
                     # session.commit()
                     # session.refresh(tagDb)
                 # else:
                 #     tagDb = session.query(Tags).filter(Tags.content == token).first()
 
                 newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id)
-                session.add(newTagsMap)
+                newTagsMapList.append(newTagsMap)
+                # session.add(newTagsMap)
 
+            session.bulk_save_objects(newTokenList)
+            session.bulk_save_objects(newTagsMapList)
             session.commit()
             # session.refresh(newTagsMap)
 
