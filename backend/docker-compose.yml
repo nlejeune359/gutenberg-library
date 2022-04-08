@@ -1,0 +1,36 @@
+version: "3.0"
+services:
+  api:
+    depends_on:
+      database:
+        condition: service_healthy
+    container_name: gutenberg-api-container
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
+    ports:
+      - 80:80
+    networks:
+      - net
+    volumes:
+      - ./tmp:/tmp
+  database:
+    # Official Postgres image from DockerHub (we use the last version)
+    image: 'postgres:latest'
+    hostname: 'database'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: gutenberg
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
+    ports:
+      - 5432:5432
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
