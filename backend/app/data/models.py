@@ -84,6 +84,7 @@ class Tagmaps(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     created_at = Column('timestamp', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
+    score = Column(Integer, default=0)
     book_id = Column(UUID(as_uuid=True), ForeignKey("Books.id"))
     tag_id = Column(UUID(as_uuid=True), ForeignKey("Tags.id"))
     book = relationship("Books")

@@ -50,20 +50,20 @@ async def input_new_books(books: List[Book]):
             session.refresh(newBook)
 
             # Funny part bc it's very time expensive
-            tokenList = createTokenList(full_text_)
+            tokenSet, tokenList = createTokenList(full_text_)
 
             newTokenCounter = 0
-            newTokenList = []
+            newtokenSet = []
             newTagsMapList = []
 
-            allTagsList = session.query(Tags).filter(Tags.content.in_(tokenList)).all()
+            allTagsList = session.query(Tags).filter(Tags.content.in_(tokenSet)).all()
             allTagsDict = {}
 
             for item in allTagsList:
                 allTagsDict[item.content] = item.id
             del(allTagsList)
 
-            for token in tokenList:
+            for token in tokenSet:
                 try:
                     tagDb = allTagsDict[token]
                 except:
@@ -73,7 +73,7 @@ async def input_new_books(books: List[Book]):
                 if not tagDb:
                     newTokenCounter += 1
                     tagDb = Tags(content=token, id=uuid.uuid4())
-                    newTokenList.append(tagDb)
+                    newtokenSet.append(tagDb)
                 else:
                     tagDb = Tags(content=token, id=tagDb)
 
@@ -83,16 +83,16 @@ async def input_new_books(books: List[Book]):
                 # else:
                 #     tagDb = session.query(Tags).filter(Tags.content == token).first()
 
-                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id)
+                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id, score=tokenList.count(token))
                 newTagsMapList.append(newTagsMap)
                 # session.add(newTagsMap)
 
-            session.bulk_save_objects(newTokenList)
+            session.bulk_save_objects(newtokenSet)
             session.bulk_save_objects(newTagsMapList)
             session.commit()
             # session.refresh(newTagsMap)
 
-            res[book.title] = "Token detected : " + str(len(tokenList)) + " | New token :" + str(newTokenCounter)
+            res[book.title] = "Token detected : " + str(len(tokenSet)) + " | New token :" + str(newTokenCounter)
         else:
             res[book.title] = "Already exist"
 
