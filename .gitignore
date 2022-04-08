@@ -133,3 +133,7 @@ dmypy.json
 elm-stuff
 # elm-repl generated files
 repl-temp-*
+
+# tmp file
+backend/tmp/
+backend/app/tmp/
