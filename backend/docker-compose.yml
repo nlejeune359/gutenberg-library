@@ -2,7 +2,8 @@ version: "3.0"
 services:
   api:
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     container_name: gutenberg-api-container
     build: .
     command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
@@ -20,6 +21,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: gutenberg
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 2s
+      retries: 5
     ports:
       - 5432:5432
     networks:
