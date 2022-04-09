@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 from typing import Optional, List
 from data.models import Base
-from routers import inputData
+from routers import inputData, simpleSearch
 from fastapi_cprofile.profiler import CProfileMiddleware
 import utils as u
 
@@ -16,6 +16,7 @@ async def startup_event():
     Base.metadata.create_all(db_sal)
 
 app.include_router(inputData.router)
+app.include_router(simpleSearch.router, prefix="/search")
 
 @app.get("/")
 def helloworld():
