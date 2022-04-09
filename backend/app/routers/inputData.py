@@ -46,7 +46,13 @@ async def input_new_books(books: List[Book]):
             newBook = Books(title=book.title, full_text=full_text_, author_id=author.id)
 
             session.add(newBook)
-            session.commit()
+            try:
+                session.commit()
+            except Exception as e:
+                res[book.title] = "Error detected :" + str(e)
+                session.rollback()
+                continue
+
             session.refresh(newBook)
 
             # Funny part bc it's very time expensive
@@ -89,9 +95,13 @@ async def input_new_books(books: List[Book]):
 
             session.bulk_save_objects(newtokenSet)
             session.bulk_save_objects(newTagsMapList)
-            session.commit()
+            try:
+                session.commit()
+                res[book.title] = "Token detected : " + str(len(tokenSet)) + " | New token :" + str(newTokenCounter)
+            except Exception as e:
+                session.rollback()
+                res[book.title] = "Error detected :" + str(e)
 
-            res[book.title] = "Token detected : " + str(len(tokenSet)) + " | New token :" + str(newTokenCounter)
         else:
             res[book.title] = "Already exist"
 

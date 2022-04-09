@@ -13,6 +13,7 @@ services:
       - net
     volumes:
       - ./tmp:/tmp
+
   database:
     # Official Postgres image from DockerHub (we use the last version)
     image: 'postgres:latest'
