@@ -137,3 +137,7 @@ repl-temp-*
 # tmp file
 backend/tmp/
 backend/app/tmp/
+
+# json files
+users.json
+books.json
