@@ -32,7 +32,7 @@ async def create_user(input: newUser):
         session.commit()
         return {input.username: user.id}
     else:
-        return {input.username: "This user already exist"}
+        raise HTTPException(status_code=400, detail=input.username+"This user already exist")
 
 
 @router.get("/getId")
@@ -41,4 +41,4 @@ async def ge_user_id(username):
     if userID:
         return {username: userID[0]}
     else:
-        return {username: "Doesnt exist"}
+        raise HTTPException(status_code=400, detail=username+" : Doesnt exist")
