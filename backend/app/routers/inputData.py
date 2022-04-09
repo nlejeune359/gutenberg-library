@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from data.models import Books, Author, Tags, Tagmaps
 from pydantic import BaseModel
 from typing import Optional, List
-from data.tokenize import createTokenList
+from data.tokenize import createTokenList, cleanStr
 import utils as u
 import requests
 import uuid
@@ -52,6 +52,14 @@ async def input_new_books(books: List[Book]):
             # Funny part bc it's very time expensive
             tokenSet, tokenList = createTokenList(full_text_)
 
+            # Add title & author name into token processing list
+            btitle = cleanStr(book.title)
+            bauthor = cleanStr(book.author_name)
+            tokenSet.add(btitle)
+            tokenList.append(btitle)
+            tokenSet.add(bauthor)
+            tokenList.append(bauthor)
+
             newTokenCounter = 0
             newtokenSet = []
             newTagsMapList = []
@@ -68,7 +76,6 @@ async def input_new_books(books: List[Book]):
                     tagDb = allTagsDict[token]
                 except:
                     tagDb = False
-                #tagDb = session.query(Tags).filter(Tags.content == token).first()
 
                 if not tagDb:
                     newTokenCounter += 1
@@ -77,20 +84,12 @@ async def input_new_books(books: List[Book]):
                 else:
                     tagDb = Tags(content=token, id=tagDb)
 
-                    # session.add(tagDb)
-                    # session.commit()
-                    # session.refresh(tagDb)
-                # else:
-                #     tagDb = session.query(Tags).filter(Tags.content == token).first()
-
                 newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id, score=tokenList.count(token))
                 newTagsMapList.append(newTagsMap)
-                # session.add(newTagsMap)
 
             session.bulk_save_objects(newtokenSet)
             session.bulk_save_objects(newTagsMapList)
             session.commit()
-            # session.refresh(newTagsMap)
 
             res[book.title] = "Token detected : " + str(len(tokenSet)) + " | New token :" + str(newTokenCounter)
         else:
