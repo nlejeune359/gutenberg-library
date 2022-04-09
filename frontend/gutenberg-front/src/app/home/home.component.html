@@ -1,0 +1,30 @@
+<!-- <img src="../../assets/library.png"> -->
+<div class="test">
+
+    <form class="search-form">
+        <div class="username">
+            <span>Enter your username : </span>
+            <mat-form-field class="username">
+                <mat-label style="color: white;">Username</mat-label>
+                <input matInput>
+            </mat-form-field>
+        </div>
+
+        <div class="searchbar">
+            <mat-form-field class="search">
+                <mat-label>Search for books</mat-label>
+                <input matInput placeholder="Ex. Lord Of The Rings">
+            </mat-form-field>
+            <button mat-icon-button>
+                <mat-icon style="color: rgb(0, 0, 50);">search</mat-icon>
+            </button>
+        </div>
+    </form>
+
+    <div class="suggestions">
+        <h2 style="margin: 1%;">Suggestions</h2>
+        <mat-action-list class="list">
+            <button class="suggestion" *ngFor="let s of suggestions" mat-list-item> {{s}} </button>
+        </mat-action-list>
+    </div>
+</div>
