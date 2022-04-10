@@ -4,4 +4,4 @@ APScheduler==3.6.3
 fastapi==0.63.0
 uvicorn==0.17.6
 fastapi-cprofile
-psycopg2
+psycopg2cffi
