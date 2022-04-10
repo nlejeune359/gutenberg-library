@@ -36,7 +36,11 @@ async def get_book(book_id: str, user_id):
         # Ecriture dans table ConsultedBooks
         consultedBook = ConsultedBooks(user_id=user_id, book_id=book_id)
         session.add(consultedBook)
-        session.commit()
+        try:
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise HTTPException(status_code=400, detail="Houston we got a problem : "+str(e))
 
         # Reponse requete
         return res

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from data.models import Books, Author, Tags, Tagmaps, Users
+from data.models import Books, Author, ConsultedBooks, Tags, Tagmaps, Users, Subjects, SubjectMaps
 from pydantic import BaseModel
 from typing import Optional, List
 from data.tokenize import createTokenList, cleanStr
+from algorithms.jaccard import computeJaccardIndex
 import utils as u
 import requests
 import uuid
@@ -42,3 +43,43 @@ async def ge_user_id(username):
         return {username: userID[0]}
     else:
         raise HTTPException(status_code=400, detail=username+" : Doesnt exist")
+
+@router.get("/suggestions")
+async def get_history(user_id):
+    request = session.query(ConsultedBooks.book_id).filter(
+        ConsultedBooks.user_id == user_id).order_by(ConsultedBooks.consulted_at.desc()).limit(5).all()
+    
+    subjectMapsFromDB = session.query(SubjectMaps.book_id, SubjectMaps.subject_id).all()
+    # {'book_id': ['subject_id']}
+
+    request = list(map(lambda x: x[0], request))
+    setADict: list[str] = []
+    setBDict = {}
+
+    for sub in subjectMapsFromDB:
+
+        if sub.book_id in request:
+            # setA
+            if sub.subject_id not in setADict:
+                setADict.append(sub.subject_id)
+
+        else:
+            # setB
+            if sub.book_id in setBDict:
+                setBDict[sub.book_id].append(sub.subject_id)
+            else:
+                setBDict[sub.book_id] = [sub.subject_id]
+
+    resBDict ={}
+    for bookID in setBDict:
+        resBDict[bookID] = computeJaccardIndex(setADict, setBDict[bookID])
+
+    resBDict = sorted(resBDict.items(), key=lambda x:x[1], reverse=True)
+
+    res = []
+    for (key, value) in resBDict:
+        if value == 0:
+            break
+        res.append(key)
+
+    return res
