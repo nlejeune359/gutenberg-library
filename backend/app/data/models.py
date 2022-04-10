@@ -46,6 +46,9 @@ class Books(Base):
 
     author = relationship("Author")
 
+    def info(self):
+        return {"id": self.id, "title": self.title, "author": self.author.info()}
+
 
 class ConsultedBooks(Base):
     __tablename__ = "ConsultedBooks"
@@ -67,6 +70,9 @@ class Author(Base):
     created_at = Column('created_at', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
 
+    def info(self):
+        return {"id": self.id, "author_name": self.author_name}
+
 
 class SearchResult(Base):
     __tablename__ = "SearchResult"
@@ -87,8 +93,16 @@ class Tags(Base):
     content = Column(String)
     created_at = Column('created_at', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
+    tagmaps = relationship("Tagmaps", back_populates="tag")
 
-
+class Subjects(Base):
+    __tablename__ = "Subjects"
+    __table_args__ = ((UniqueConstraint('content')),)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    content = Column(String)
+    created_at = Column('created_at', TIMESTAMP(timezone=False),
+                        nullable=False, default=datetime.now())
+    
 # MAP
 class Tagmaps(Base):
     __tablename__ = "Tagmaps"
@@ -100,18 +114,10 @@ class Tagmaps(Base):
     book_id = Column(UUID(as_uuid=True), ForeignKey("Books.id"))
     tag_id = Column(UUID(as_uuid=True), ForeignKey("Tags.id"))
     book = relationship("Books")
-    tag = relationship("Tags")
-
-class Subjects(Base):
-    __tablename__ = "Subjects"
-    __table_args__ = ((UniqueConstraint('content')),)
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    content = Column(String)
-    created_at = Column('created_at', TIMESTAMP(timezone=False),
-                        nullable=False, default=datetime.now())
+    tag = relationship("Tags", back_populates="tagmaps")
 
 
-# MAP
+
 class SubjectMaps(Base):
     __tablename__ = "SubjectMaps"
     __table_args__ = ((UniqueConstraint('book_id', 'subject_id')),)

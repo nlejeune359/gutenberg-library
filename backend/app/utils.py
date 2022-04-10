@@ -1,1 +1,1 @@
-db_string = "postgresql://postgres:example@database:5432/gutenberg"
+db_string = "postgresql+psycopg2cffi://postgres:example@database:5432/gutenberg"

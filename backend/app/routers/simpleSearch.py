@@ -42,7 +42,8 @@ async def searchOneWord(word: str, userId: str):
         res = []
         s_res = []
         for result in resFromDBTag:
-            res.append(result.book.title)
+            if result.book.info() not in res:
+                res.append(result.book.info())
             s_res.append(SearchResult(book_id=result.book.id, historic_id=histoRow.id))
 
         session.bulk_save_objects(s_res)
@@ -74,8 +75,8 @@ async def searchMultipleWords(words: str, userId: str):
         res = []
         s_res = []
         for result in resFromDBTag:
-            if result.book.title not in res:
-                res.append(result.book.title)
+            if result.book.info() not in res:
+                res.append(result.book.info())
             s_res.append(SearchResult(book_id=result.book.id, historic_id=histoRow.id))
 
         session.bulk_save_objects(s_res)

@@ -40,7 +40,7 @@ async def input_new_books(books: List[Book]):
             session.commit()
             session.refresh(author)
 
-        bookAlreadyExist = session.query(Author).filter(Books.title == book.title and Books.author == author).first() is not None
+        bookAlreadyExist = session.query(Author.id).filter(Books.title == book.title and Books.author == author).first() is not None
 
         if not bookAlreadyExist:
             full_text_ = requests.get(book.full_text_pointer).text
@@ -100,7 +100,7 @@ async def input_new_books(books: List[Book]):
             newtokenSet = []
             newTagsMapList = []
 
-            allTagsList = session.query(Tags).filter(Tags.content.in_(tokenSet)).all()
+            allTagsList = session.query(Tags.id, Tags.content).filter(Tags.content.in_(tokenSet)).all()
             allTagsDict = {}
 
             for item in allTagsList:
