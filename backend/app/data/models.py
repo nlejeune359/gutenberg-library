@@ -47,6 +47,18 @@ class Books(Base):
     author = relationship("Author")
 
 
+class ConsultedBooks(Base):
+    __tablename__ = "ConsultedBooks"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("Users.id"))
+    book_id = Column(UUID(as_uuid=True), ForeignKey("Books.id"))
+    consulted_at = Column('consulted_at', TIMESTAMP(timezone=False),
+                        nullable=False, default=datetime.now())
+
+    book = relationship("Books")
+    user = relationship("Users")
+
+
 class Author(Base):
     __tablename__ = "Author"
     __table_args__ = ((UniqueConstraint('author_name')),)
@@ -89,3 +101,24 @@ class Tagmaps(Base):
     tag_id = Column(UUID(as_uuid=True), ForeignKey("Tags.id"))
     book = relationship("Books")
     tag = relationship("Tags")
+
+class Subjects(Base):
+    __tablename__ = "Subjects"
+    __table_args__ = ((UniqueConstraint('content')),)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    content = Column(String)
+    created_at = Column('created_at', TIMESTAMP(timezone=False),
+                        nullable=False, default=datetime.now())
+
+
+# MAP
+class SubjectMaps(Base):
+    __tablename__ = "SubjectMaps"
+    __table_args__ = ((UniqueConstraint('book_id', 'subject_id')),)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    created_at = Column('timestamp', TIMESTAMP(timezone=False),
+                        nullable=False, default=datetime.now())
+    book_id = Column(UUID(as_uuid=True), ForeignKey("Books.id"))
+    subject_id = Column(UUID(as_uuid=True), ForeignKey("Subjects.id"))
+    book = relationship("Books")
+    subject = relationship("Subjects")
