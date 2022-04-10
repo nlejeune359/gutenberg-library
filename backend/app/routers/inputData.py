@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from data.models import Books, Author, Tags, Tagmaps
+from data.models import Books, Author, Tags, Tagmaps, SubjectMaps, Subjects
 from pydantic import BaseModel
 from typing import Optional, List
 from data.tokenize import createTokenList, cleanStr
@@ -24,6 +24,7 @@ class Book(BaseModel):
     title: str
     author_name: str
     full_text_pointer: str
+    subjects: List[str]
 
 
 @router.post("/book")
@@ -54,6 +55,35 @@ async def input_new_books(books: List[Book]):
                 continue
 
             session.refresh(newBook)
+
+            # Subjects
+            subjectsList = book.subjects
+            
+            newSubjectSet = []
+            newSubjectMapsList = []
+            
+            allSubjectsList = session.query(Subjects).filter(Subjects.content.in_(subjectsList)).all()
+            allSubjectsDict = {}
+
+            for item in allSubjectsList:
+                allSubjectsDict[item.content] = item.id
+            del(allSubjectsList)
+
+            for subject in subjectsList:
+                try:
+                    subjectDb = allSubjectsDict[subject]
+                except:
+                    subjectDb = False
+
+                if not subjectDb:
+                    subjectDb = Subjects(content=subject, id=uuid.uuid4())
+                    newSubjectSet.append(subjectDb)
+                else:
+                    subjectDb = Subjects(content=subject, id=subjectDb)
+
+                newSubjectMap = SubjectMaps(book_id=newBook.id, subject_id=subjectDb.id)
+                newSubjectMapsList.append(newSubjectMap)
+
 
             # Funny part bc it's very time expensive
             tokenSet, tokenList = createTokenList(full_text_)
@@ -94,6 +124,8 @@ async def input_new_books(books: List[Book]):
                 newTagsMapList.append(newTagsMap)
 
             session.bulk_save_objects(newtokenSet)
+            session.bulk_save_objects(newSubjectSet)
+            session.bulk_save_objects(newSubjectMapsList)
             session.bulk_save_objects(newTagsMapList)
             try:
                 session.commit()
