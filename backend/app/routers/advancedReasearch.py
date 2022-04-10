@@ -12,7 +12,7 @@ import inputArgsInJSON as aij
 
 router = APIRouter(
             prefix="/avanced",
-            tags=["search", "avanced"]
+            tags=["search", "advanced"]
             )
 
 
