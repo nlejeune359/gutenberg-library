@@ -46,6 +46,9 @@ class Books(Base):
 
     author = relationship("Author")
 
+    def info(self):
+        return {"id": self.id, "title": self.title, "author": self.author.info()}
+
 
 class Author(Base):
     __tablename__ = "Author"
@@ -54,6 +57,9 @@ class Author(Base):
     author_name = Column(String)
     created_at = Column('created_at', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
+
+    def info(self):
+        return {"id": self.id, "author_name": self.author_name}
 
 
 class SearchResult(Base):
@@ -75,7 +81,7 @@ class Tags(Base):
     content = Column(String)
     created_at = Column('created_at', TIMESTAMP(timezone=False),
                         nullable=False, default=datetime.now())
-
+    tagmaps = relationship("Tagmaps", back_populates="tag")
 
 # MAP
 class Tagmaps(Base):
@@ -88,4 +94,4 @@ class Tagmaps(Base):
     book_id = Column(UUID(as_uuid=True), ForeignKey("Books.id"))
     tag_id = Column(UUID(as_uuid=True), ForeignKey("Tags.id"))
     book = relationship("Books")
-    tag = relationship("Tags")
+    tag = relationship("Tags", back_populates="tagmaps")
