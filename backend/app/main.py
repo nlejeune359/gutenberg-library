@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 from typing import Optional, List
 from data.models import Base
-from routers import inputData, simpleSearch, user, advancedReasearch
+from routers import inputData, simpleSearch, user, advancedReasearch, books
 from fastapi_cprofile.profiler import CProfileMiddleware
 import utils as u
 
@@ -17,6 +17,7 @@ async def startup_event():
 
 app.include_router(inputData.router)
 app.include_router(user.router)
+app.include_router(books.router)
 app.include_router(simpleSearch.router, prefix="/search")
 app.include_router(advancedReasearch.router, prefix="/search")
 
