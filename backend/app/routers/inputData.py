@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from data.models import Books, Author, Tags, Tagmaps, SubjectMaps, Subjects
 from pydantic import BaseModel
@@ -27,118 +27,154 @@ class Book(BaseModel):
     subjects: List[str]
 
 
+def getBooksAndAuthorAlreadyInDb(books):
+    booksTitles = list(map(lambda x: x.title, books))
+    booksAuthor_name = list(map(lambda x: x.author_name, books))
+    statement = session.query(Books.title, Author.author_name, Author.id).join(Author).filter(or_(Books.title.in_(booksTitles), Author.author_name.in_(booksAuthor_name)))
+    booksInDB = statement.all()
+    authorRes = set()
+    booksTitleRes = set()
+    for b in booksInDB:
+        authorRes.add((b.author_name, b.id))
+        booksTitleRes.add(b.title)
+    return booksTitleRes, authorRes
+
+
+def deleteBookAlreadyInDB(books, booksTitleAIDB):
+
+    booksTitlesInDB = set()
+    for book in booksTitleAIDB:
+        booksTitlesInDB.add(book)
+
+    res = []
+    for b in books:
+        if b.title not in booksTitlesInDB:
+            res.append(b)
+    return res
+
+
+def getAuthorMap(books, authorAIDB):
+    # Author
+    newAuthor = set()
+    resMap = dict()
+
+    authorID = dict()
+    for a in authorAIDB:
+        authorID[a[0]] = a[1]
+
+    for book in books:
+        if book.author_name in authorID:
+            resMap[book.title] = authorID[book.author_name]
+        else:
+            idA = uuid.uuid4()
+            resMap[book.title] = idA
+            authorID[book.author_name] = idA
+            author = Author(id=idA, author_name=book.author_name)
+            newAuthor.add(author)
+    session.bulk_save_objects(newAuthor)
+
+    return resMap
+
+
+def addNewbooks(books, authorsMap):
+    newBooks = []
+    allNewTags = []
+    allNewTagsMaps = []
+    booksMap = dict()
+    tagMap = dict()
+
+    for book in books:
+        idB = uuid.uuid4()
+        booksMap[book.title] = idB
+        full_text_ = requests.get(book.full_text_pointer).text
+        b = Books(id=idB,
+                title=book.title,
+                author_id=authorsMap[book.title],
+                full_text=full_text_)
+        newTags, newTagsMaps, tagMap = manageTags(full_text_, idB, tagMap)
+        allNewTags = allNewTags + newTags
+        allNewTagsMaps = allNewTagsMaps + newTagsMaps
+        newBooks.append(b)
+
+    session.bulk_save_objects(newBooks)
+    session.bulk_save_objects(allNewTags)
+    session.bulk_save_objects(allNewTagsMaps)
+
+    return booksMap
+
+
+def manageTags(fulltext, bookID, tagMap):
+    tagsSet_, tagsList_ = createTokenList(fulltext)
+    if not tagMap:
+        TagsInDB = session.query(Tags.id, Tags.content).filter(Tags.content.in_(tagsSet_)).all()
+
+        #tagMap = dict()
+        for t in TagsInDB:
+            tagMap[t.content] = t.id
+
+    newTags = []
+    for tag in tagsSet_:
+        if tag not in tagMap:
+            idT = uuid.uuid4()
+            tagMap[tag] = idT
+            s = Tags(id=idT, content=tag)
+            newTags.append(s)
+
+    newTagsMaps = []
+    tagsAlreadyTreated = []
+    for tag in tagsSet_:
+        if tagMap[tag] not in tagsAlreadyTreated:
+            tagsAlreadyTreated.append(tagMap[tag])
+            newTagsMaps.append(Tagmaps(book_id=bookID, tag_id=tagMap[tag]))
+    # session.bulk_save_objects(newTags)
+    # session.bulk_save_objects(newTagsMaps)
+    return newTags, newTagsMaps, tagMap
+
+
+def manageSubjects(books, booksMap):
+    allSubjectsInInput = set()
+    for book in books:
+        tmpL = set()
+        for subject in book.subjects:
+            settmp, listtmp = createTokenList(subject)
+            tmpL = tmpL.union(settmp)
+        allSubjectsInInput = allSubjectsInInput.union(tmpL)
+
+    subjectsInDB = session.query(Subjects.id, Subjects.content).filter(Subjects.content.in_(allSubjectsInInput)).all()
+
+    subMaps = dict()
+    for s in subjectsInDB:
+        subMaps[s.content] = s.id
+
+    newSubs = []
+    for sub in allSubjectsInInput:
+        if sub not in subMaps:
+            idS = uuid.uuid4()
+            subMaps[sub] = idS
+            s = Subjects(id=idS, content=sub)
+            newSubs.append(s)
+
+    newSubMaps = []
+    subAlreadyTreated = []
+    for book in books:
+        for subInBooks in book.subjects:
+            subIBset_, subIBlist_ = createTokenList(subInBooks)
+            for item in subIBset_:
+                if subMaps[item] not in subAlreadyTreated:
+                    subAlreadyTreated.append(subMaps[item])
+                    newSubMaps.append(SubjectMaps(book_id=booksMap[book.title], subject_id=subMaps[item]))
+    session.bulk_save_objects(newSubs)
+    session.bulk_save_objects(newSubMaps)
+    return subMaps
+
+
 @router.post("/book")
 async def input_new_books(books: List[Book]):
-    res = {}
-    for book in books:
-        author = session.query(Author).filter(Author.author_name == book.author_name).first()
 
-        if author is None:
-            # If author doesnt exist
-            author = Author(author_name=book.author_name)
-            session.add(author)
-            session.commit()
-            session.refresh(author)
-
-        bookAlreadyExist = session.query(Author.id).filter(Books.title == book.title and Books.author == author).first() is not None
-
-        if not bookAlreadyExist:
-            full_text_ = requests.get(book.full_text_pointer).text
-            newBook = Books(title=book.title, full_text=full_text_, author_id=author.id)
-
-            session.add(newBook)
-            try:
-                session.commit()
-            except Exception as e:
-                res[book.title] = "Error detected :" + str(e)
-                session.rollback()
-                continue
-
-            session.refresh(newBook)
-
-            # Subjects
-            subjectSet = set()
-            for subjectItem in book.subjects:
-                subjectSet_, subjectsListBis = createTokenList(subjectItem)
-                del(subjectsListBis)
-                subjectSet = subjectSet.union(subjectSet_)
-
-            newSubjectSet = []
-            newSubjectMapsList = []
-
-            allSubjectsList = session.query(Subjects).filter(Subjects.content.in_(subjectSet)).all()
-            allSubjectsDict = {}
-
-            for item in allSubjectsList:
-                allSubjectsDict[item.content] = item.id
-            del(allSubjectsList)
-
-            for subject in subjectSet:
-                try:
-                    subjectDb = allSubjectsDict[subject]
-                except:
-                    subjectDb = False
-
-                if not subjectDb:
-                    subjectDb = Subjects(content=subject, id=uuid.uuid4())
-                    newSubjectSet.append(subjectDb)
-                else:
-                    subjectDb = Subjects(content=subject, id=subjectDb)
-
-                newSubjectMap = SubjectMaps(book_id=newBook.id, subject_id=subjectDb.id)
-                newSubjectMapsList.append(newSubjectMap)
-
-
-            # Funny part bc it's very time expensive
-            tokenSet, tokenList = createTokenList(full_text_)
-
-            # Add title & author name into token processing list
-            btitle = cleanStr(book.title)
-            bauthor = cleanStr(book.author_name)
-            tokenSet.add(btitle)
-            tokenList.append(btitle)
-            tokenSet.add(bauthor)
-            tokenList.append(bauthor)
-
-            newTokenCounter = 0
-            newtokenSet = []
-            newTagsMapList = []
-
-            allTagsList = session.query(Tags.id, Tags.content).filter(Tags.content.in_(tokenSet)).all()
-            allTagsDict = {}
-
-            for item in allTagsList:
-                allTagsDict[item.content] = item.id
-            del(allTagsList)
-
-            for token in tokenSet:
-                try:
-                    tagDb = allTagsDict[token]
-                except:
-                    tagDb = False
-
-                if not tagDb:
-                    newTokenCounter += 1
-                    tagDb = Tags(content=token, id=uuid.uuid4())
-                    newtokenSet.append(tagDb)
-                else:
-                    tagDb = Tags(content=token, id=tagDb)
-
-                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id, score=tokenList.count(token))
-                newTagsMapList.append(newTagsMap)
-
-            session.bulk_save_objects(newtokenSet)
-            session.bulk_save_objects(newSubjectSet)
-            session.bulk_save_objects(newSubjectMapsList)
-            session.bulk_save_objects(newTagsMapList)
-            try:
-                session.commit()
-                res[book.title] = "Token detected : " + str(len(tokenSet)) + " | New token :" + str(newTokenCounter)
-            except Exception as e:
-                session.rollback()
-                res[book.title] = "Error detected :" + str(e)
-
-        else:
-            res[book.title] = "Already exist"
-
-    return res
+    booksTitleAIDB, authorAIDB = getBooksAndAuthorAlreadyInDb(books)
+    books = deleteBookAlreadyInDB(books, booksTitleAIDB)
+    authorsMap = getAuthorMap(books, authorAIDB)
+    booksMap = addNewbooks(books, authorsMap)
+    subMaps = manageSubjects(books, booksMap)
+    session.commit()
+    return books
