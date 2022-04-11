@@ -85,6 +85,6 @@ async def searchMultipleWords(words: str, userId: str):
         session.bulk_save_objects(s_res)
         session.commit()
 
-        return res
+        return sortSearchResponse(res)
     else:
         raise HTTPException(status_code=400, detail=userId+" : Doesnt exist")

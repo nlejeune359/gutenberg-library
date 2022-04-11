@@ -5,10 +5,12 @@ from data.models import Books, Author, Tags, Tagmaps, Historic, Users, SearchRes
 from pydantic import BaseModel
 from typing import Optional, List
 from data.tokenize import createTokenList, cleanStr
+from algorithms.ranking import sortSearchResponse
+import inputArgsInJSON as aij
 import utils as u
 import requests
 import uuid
-import inputArgsInJSON as aij
+
 
 router = APIRouter(
             prefix="/avanced",
@@ -47,7 +49,7 @@ async def searchOnToken(regex: str, userId: str):
         session.bulk_save_objects(s_res)
         session.commit()
 
-        return res
+        return sortSearchResponse(res)
     else:
         raise HTTPException(status_code=400, detail=userId+" : Doesnt exist")
 
@@ -79,6 +81,6 @@ async def searchOnFullText(regex: str, userId: str):
         session.bulk_save_objects(s_res)
         session.commit()
 
-        return res
+        return sortSearchResponse(res)
     else:
         raise HTTPException(status_code=400, detail=userId+" : Doesnt exist")
