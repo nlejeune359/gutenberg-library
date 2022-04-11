@@ -74,10 +74,15 @@ async def input_new_books(books: List[Book]):
             del(allSubjectsList)
 
             for subject in subjectSet:
-                try:
+                if subject in allSubjectsDict:
                     subjectDb = allSubjectsDict[subject]
-                except:
+                else:
                     subjectDb = False
+
+                # try:
+                #     subjectDb = allSubjectsDict[subject]
+                # except:
+                #     subjectDb = False
 
                 if not subjectDb:
                     subjectDb = Subjects(content=subject, id=uuid.uuid4())
@@ -112,10 +117,14 @@ async def input_new_books(books: List[Book]):
             del(allTagsList)
 
             for token in tokenSet:
-                try:
+                if token in allTagsDict:
                     tagDb = allTagsDict[token]
-                except:
+                else:
                     tagDb = False
+                # try:
+                #     tagDb = allTagsDict[token]
+                # except:
+                #     tagDb = False
 
                 if not tagDb:
                     newTokenCounter += 1
@@ -124,7 +133,7 @@ async def input_new_books(books: List[Book]):
                 else:
                     tagDb = Tags(content=token, id=tagDb)
 
-                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id, score=tokenList.count(token))
+                newTagsMap = Tagmaps(book_id=newBook.id, tag_id=tagDb.id)
                 newTagsMapList.append(newTagsMap)
 
             session.bulk_save_objects(newtokenSet)
