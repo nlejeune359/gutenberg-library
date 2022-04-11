@@ -28,11 +28,20 @@ for i in range(1, page_number+1):
         book = books['results'][j]
         obj = {}
         obj['title'] = book['title']
-        obj['author_name'] = book['authors'][0]['name']
-        obj['full_text_pointer'] = [value for key, value in book['formats'].items() if 'text/plain' in key][0]
+        try:
+            obj['author_name'] = book['authors'][0]['name']
+        except:
+            obj['author_name'] = "unknow"
+
+        try:
+            obj['full_text_pointer'] = [value for key, value in book['formats'].items() if 'text/plain' in key][0]
+        except:
+            j += 1
+            continue
         obj['subjects'] = book['subjects']
         books_script.append(obj)
         j += 1
+    page_number += 1
 
 res.write(json.dumps(books_script))
 res.close()
