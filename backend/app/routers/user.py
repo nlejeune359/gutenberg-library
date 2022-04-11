@@ -83,6 +83,6 @@ async def get_history(user_id):
         books_id.append(key)
 
     print(books_id)
-    res = session.query(Books.id, Books.title).filter(Books.id.in_(books_id)).limit(10).all()
+    res = session.query(Books.id, Books.title, Author.author_name).join(Author).filter(Books.id.in_(books_id)).limit(10).all()
 
     return res
