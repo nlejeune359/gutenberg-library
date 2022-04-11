@@ -45,9 +45,9 @@ async def ge_user_id(username):
         raise HTTPException(status_code=400, detail=username+" : Doesnt exist")
 
 @router.get("/suggestions")
-async def get_history(user_id):
+async def get_history(userId):
     request = session.query(ConsultedBooks.book_id).filter(
-        ConsultedBooks.user_id == user_id).order_by(ConsultedBooks.consulted_at.desc()).limit(5).all()
+        ConsultedBooks.user_id == userId).order_by(ConsultedBooks.consulted_at.desc()).limit(5).all()
     
     subjectMapsFromDB = session.query(SubjectMaps.book_id, SubjectMaps.subject_id).all()
     # {'book_id': ['subject_id']}
@@ -82,7 +82,10 @@ async def get_history(user_id):
             break
         books_id.append(key)
 
-    print(books_id)
     res = session.query(Books.id, Books.title, Author.author_name).join(Author).filter(Books.id.in_(books_id)).limit(10).all()
 
-    return res
+    resDict = []
+    for item in res:
+        resDict.append({'book_id': item.id, 'title': item.title, 'author': item.author_name})
+
+    return resDict

@@ -20,7 +20,7 @@ Session = sessionmaker(db_sal)
 session = Session()
 
 @router.get("/{book_id}")
-async def get_book(book_id: str, user_id):
+async def get_book(book_id: str, userId):
 
     # Recuperation livre
     book = session.query(Books).filter(Books.id == book_id).first()
@@ -34,7 +34,7 @@ async def get_book(book_id: str, user_id):
         }
 
         # Ecriture dans table ConsultedBooks
-        consultedBook = ConsultedBooks(user_id=user_id, book_id=book_id)
+        consultedBook = ConsultedBooks(user_id=userId, book_id=book_id)
         session.add(consultedBook)
         try:
             session.commit()

@@ -1,11 +1,20 @@
 <div class="header">
-    <h1>Gutenberg Project</h1>
+    <div class="home">
+        <button mat-button color="basic" (click)="home()">Gutenberg Project</button>
+    </div>
 
     <div class="username">
-        <span>Enter your username : </span>
-        <mat-form-field class="username">
-            <mat-label style="color: white;">Username</mat-label>
-            <input matInput>
-        </mat-form-field>
+        <h2 *ngIf="username != null">
+            {{username}}
+        </h2>
+
+        <form *ngIf="username == null">
+            <span>Enter your username : </span>
+            <mat-form-field class="username">
+                <mat-label style="color: lightgrey;">Username</mat-label>
+                <input matInput type="text" [formControl]="formControl">
+            </mat-form-field>
+            <button (click)="newUser()">Create User</button>
+        </form>
     </div>
 </div>
