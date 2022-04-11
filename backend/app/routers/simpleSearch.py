@@ -5,6 +5,7 @@ from data.models import Books, Author, Tags, Tagmaps, Historic, Users, SearchRes
 from pydantic import BaseModel
 from typing import Optional, List
 from data.tokenize import createTokenList, cleanStr
+from algorithms.ranking import sortSearchResponse
 import utils as u
 import requests
 import uuid
@@ -41,7 +42,9 @@ async def searchOneWord(word: str, userId: str):
 
         res = []
         s_res = []
+        gSet = set()
         for result in resFromDBTag:
+            gSet.add(result.book_id)
             if result.book.info() not in res:
                 res.append(result.book.info())
             s_res.append(SearchResult(book_id=result.book.id, historic_id=histoRow.id))
@@ -49,7 +52,7 @@ async def searchOneWord(word: str, userId: str):
         session.bulk_save_objects(s_res)
         session.commit()
 
-        return res
+        return sortSearchResponse(res)
     else:
         raise HTTPException(status_code=400, detail=userId+" : Doesnt exist")
 

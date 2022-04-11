@@ -44,11 +44,12 @@ async def ge_user_id(username):
     else:
         raise HTTPException(status_code=400, detail=username+" : Doesnt exist")
 
+
 @router.get("/suggestions")
 async def get_history(user_id):
     request = session.query(ConsultedBooks.book_id).filter(
         ConsultedBooks.user_id == user_id).order_by(ConsultedBooks.consulted_at.desc()).limit(5).all()
-    
+
     subjectMapsFromDB = session.query(SubjectMaps.book_id, SubjectMaps.subject_id).all()
     # {'book_id': ['subject_id']}
 

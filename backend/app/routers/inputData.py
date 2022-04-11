@@ -57,19 +57,23 @@ async def input_new_books(books: List[Book]):
             session.refresh(newBook)
 
             # Subjects
-            subjectsList = book.subjects
-            
+            subjectSet = set()
+            for subjectItem in book.subjects:
+                subjectSet_, subjectsListBis = createTokenList(subjectItem)
+                del(subjectsListBis)
+                subjectSet = subjectSet.union(subjectSet_)
+
             newSubjectSet = []
             newSubjectMapsList = []
-            
-            allSubjectsList = session.query(Subjects).filter(Subjects.content.in_(subjectsList)).all()
+
+            allSubjectsList = session.query(Subjects).filter(Subjects.content.in_(subjectSet)).all()
             allSubjectsDict = {}
 
             for item in allSubjectsList:
                 allSubjectsDict[item.content] = item.id
             del(allSubjectsList)
 
-            for subject in subjectsList:
+            for subject in subjectSet:
                 try:
                     subjectDb = allSubjectsDict[subject]
                 except:
