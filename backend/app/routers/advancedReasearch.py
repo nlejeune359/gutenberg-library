@@ -33,13 +33,13 @@ async def searchOnToken(regex: str, userId: str):
     if session.query(Users).filter(Users.id == userId).count() > 0:
 
         try:
-            resFromDBTag = session.query(Books.id, Books.title).join(Tagmaps).join(Tags).filter(Tags.content.op('~*')(regex)).distinct().all()
+            resFromDBTag = session.query(Books.id, Books.title, Author.author_name).join(Author).join(Tagmaps).join(Tags).filter(Tags.content.op('~*')(regex)).distinct().all()
         except Exception as e:
             session.rollback()
             raise HTTPException(status_code=500, detail="Research error :" + str(e))
 
-        res = list(map(lambda x: {"id": x.id, "title": x.title}, resFromDBTag))
-        # res = resFromDBTag
+        res = list(map(lambda x: {"id": x.id, "title": x.title, "author_name": x.author_name}, resFromDBTag))
+
         s_res = []
         histoRow = Historic(id=uuid.uuid4(), searchArgs=aij.createJSON([regex]), user_id=userId)
         s_res.append(histoRow)
@@ -65,13 +65,13 @@ async def searchOnFullText(regex: str, userId: str):
 
         try:
             # resFromDBTag = session.query(Tagmaps.book).join(Tags).filter(Tags.content.op('~*')(regex)).all()
-            resFromFulltext = session.query(Books.id, Books.title).filter(Books.full_text.op('~*')(regex)).all()
+            resFromFulltext = session.query(Books.id, Books.title, Author.author_name).join(Author).filter(Books.full_text.op('~*')(regex)).all()
         except Exception as e:
             session.rollback()
             raise HTTPException(status_code=500, detail="Research error :" + str(e))
 
-        res = list(map(lambda x: {"id": x.id, "title": x.title}, resFromFulltext))
-        # res = resFromDBTag
+        res = list(map(lambda x: {"id": x.id, "title": x.title, "author_name": x.author_name}, resFromFulltext))
+
         s_res = []
         histoRow = Historic(id=uuid.uuid4(), searchArgs=aij.createJSON([regex]), user_id=userId)
         s_res.append(histoRow)
