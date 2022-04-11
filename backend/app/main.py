@@ -4,11 +4,19 @@ from typing import Optional, List
 from data.models import Base
 from routers import inputData, simpleSearch, user, advancedReasearch, books
 from fastapi_cprofile.profiler import CProfileMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 import utils as u
 
 app = FastAPI()
-app.add_middleware(CProfileMiddleware, enable=True, server_app = app, filename='/tmp/output.pstats', strip_dirs = False, sort_by='cumulative')
+#app.add_middleware(CProfileMiddleware, enable=True, server_app = app, filename='/tmp/output.pstats', strip_dirs = False, sort_by='cumulative')
 
+# NSA security ++
+app.add_middleware(
+CORSMiddleware,
+allow_origins=["*"],
+allow_methods=["*"],
+allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_event():

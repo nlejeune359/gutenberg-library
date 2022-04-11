@@ -1,0 +1,6 @@
+<div class="results">
+    <h2 style="margin: 1%;">Search results</h2>
+    <mat-action-list class="list">
+        <button class="result" *ngFor="let book of books" mat-list-item (click)="consultBook(book.id)"> {{book.title}}, {{book.author}} </button>
+    </mat-action-list>
+</div>

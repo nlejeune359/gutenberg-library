@@ -138,6 +138,10 @@ repl-temp-*
 backend/tmp/
 backend/app/tmp/
 
+#front
+frontend/gutenberg-front/.angular/
+frontend/gutenberg-front/node_modules/
+
 # json files
 users.json
 books.json

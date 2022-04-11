@@ -1,0 +1,35 @@
+<!-- <img src="../../assets/library.png"> -->
+<div class="home">
+    <form [formGroup]="searchForm" class="search-options">
+        <div class="advanced-search">
+            <div>
+                <span style="color: white;">Advanced search</span>
+                <mat-slide-toggle formControlName="advancedSearch"></mat-slide-toggle>
+            </div>
+
+            <div *ngIf="searchForm.get('advancedSearch').value" class="radio-buttons">
+                <mat-radio-group formControlName="advancedSearchOption" >
+                    <mat-radio-button class="radio-buttons" value="1">On tokens</mat-radio-button>
+                    <mat-radio-button class="radio-buttons" value="2">On full text</mat-radio-button>
+                </mat-radio-group>
+            </div>
+        </div>
+
+        <div class="searchbar">
+            <mat-form-field class="search">
+                <mat-label>Search for books</mat-label>
+                <input matInput placeholder="Ex. Lord Of The Rings" formControlName="search">
+            </mat-form-field>
+            <button mat-icon-button (click)="searchRequest()">
+                <mat-icon style="color: rgb(0, 0, 50);">search</mat-icon>
+            </button>
+        </div>
+    </form>
+
+    <div class="suggestions">
+        <h2 style="margin: 1%;">Suggestions</h2>
+        <mat-action-list class="list">
+            <button class="suggestion" *ngFor="let s of suggestions" mat-list-item (click)="consultBook(s.book_id)"> {{s.author}}, {{s.title}} </button>
+        </mat-action-list>
+    </div>
+</div>
