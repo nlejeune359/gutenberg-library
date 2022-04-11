@@ -33,8 +33,6 @@ async def searchOneWord(word: str, userId: str):
     if session.query(Users).filter(Users.id == userId).count() > 0:
         token = cleanStr(word)
         resFromDBTag = session.query(Books.id, Books.title, Author.author_name).join(Author).join(Tagmaps).join(Tags).filter(Tags.content == token).distinct().all()
-        histoRow = Historic(searchArgs=aij.createJSON([word]), user_id=userId)
-        session.add(histoRow)
 
         res = list(map(lambda x: {"id": x.id, "title": x.title, "author_name": x.author_name}, resFromDBTag))
 
@@ -63,20 +61,18 @@ async def searchMultipleWords(words: str, userId: str):
     if session.query(Users).filter(Users.id == userId).count() > 0:
         tokensSet, tokensList = createTokenList(words)
 
-        tagIDList = session.query(Tags.id).filter(Tags.content.in_(tokensList)).all()
-        resFromDBTag = session.query(Tagmaps).filter(Tagmaps.tag_id.in_(tagIDList)).all()
+        # tagIDList = session.query(Tags.id).filter(Tags.content.in_(tokensList)).all()
+        # resFromDBTag = session.query(Tagmaps).filter(Tagmaps.tag_id.in_(tagIDList)).all()
+        resFromDBTag = session.query(Books.id, Books.title, Author.author_name).join(Author).join(Tagmaps).join(Tags).filter(Tags.content.in_(tokensList)).distinct().all()
 
-        histoRow = Historic(searchArgs=aij.createJSON(tokensList), user_id=userId)
-        session.add(histoRow)
-        session.commit()
-        session.refresh(histoRow)
+        res = list(map(lambda x: {"id": x.id, "title": x.title, "author_name": x.author_name}, resFromDBTag))
 
-        res = []
         s_res = []
-        for result in resFromDBTag:
-            if result.book.info() not in res:
-                res.append(result.book.info())
-            s_res.append(SearchResult(book_id=result.book.id, historic_id=histoRow.id))
+        histoRow = Historic(searchArgs=aij.createJSON(tokensList), user_id=userId)
+        s_res.append(histoRow)
+
+        for result_i in range(0, len(res)):
+            s_res.append(SearchResult(book_id=res[result_i]["id"], historic_id=histoRow.id))
 
         session.bulk_save_objects(s_res)
         session.commit()
