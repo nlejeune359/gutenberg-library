@@ -76,10 +76,13 @@ async def get_history(user_id):
 
     resBDict = sorted(resBDict.items(), key=lambda x:x[1], reverse=True)
 
-    res = []
+    books_id = []
     for (key, value) in resBDict:
         if value == 0:
             break
-        res.append(key)
+        books_id.append(key)
+
+    print(books_id)
+    res = session.query(Books.id, Books.title).filter(Books.id.in_(books_id)).limit(10).all()
 
     return res
