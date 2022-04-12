@@ -37,7 +37,6 @@ export class HomeComponent implements OnInit {
   fetchSuggestions() {
     const user_id = localStorage.getItem('id') 
     if(user_id == null) {
-      console.log("NO USER_ID")
       return ;
     }
 
@@ -51,45 +50,36 @@ export class HomeComponent implements OnInit {
   }
 
   searchRequest() {
-    console.log("HERE")
     if(this.searchForm.invalid) {
-      console.log("FORM INVALID")
       return ;
     }
 
     const user_id = localStorage.getItem('id') 
     if(user_id == null) {
-      console.log("NO USER_ID")
       return ;
     }
 
     const search: string = this.searchForm.get('search').value
 
     if(this.searchForm.get('advancedSearch').value) {
-      console.log(this.searchForm.get('advancedSearchOption').value)
       switch (this.searchForm.get('advancedSearchOption').value) {
         case '1':
-          console.log("CASE 1")
           this.router.navigate(['/search'], {state: {user_id: user_id, regex: search, searchType: 2}})
           break;
 
         case '2':
-          console.log("CASE 2")
           this.router.navigate(['/search'], {state: {user_id: user_id, regex: search, searchType: 3}})
           break;
       
         default:
-          console.log("BREAK")
           return ;
       }
     } 
     else {
       if(search.includes(' ')) {
-          console.log("MULTIPLE WORDS")
           this.router.navigate(['/search'], {state: {user_id: user_id, words: search, searchType: 1}})
       } 
       else {
-          console.log("SIMPLE SEARCH")
           this.router.navigate(['/search'], {state: {user_id: user_id, word: search, searchType: 0}})
       }
     }

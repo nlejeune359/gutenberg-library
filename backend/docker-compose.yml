@@ -1,6 +1,7 @@
 version: "3.0"
 services:
   api:
+    hostname: 'gut-api'
     depends_on:
       database:
         condition: service_healthy
@@ -31,6 +32,19 @@ services:
       - 5432:5432
     networks:
       - net
+
+  client:
+    depends_on:
+    - api
+    container_name: gutenberg-front-container
+    build: ../frontend/.
+    ports:
+    - 4200:4200
+    environment:
+      API_URL: 'http://gut-api:80/'
+    networks:
+      - net
+      
 
 networks:
   net:

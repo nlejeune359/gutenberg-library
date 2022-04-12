@@ -21,6 +21,10 @@ const routes: Routes = [
   {
     path: 'book/:book_id',
     component: BookViewComponent
+  },
+  {
+    path: '*',
+    redirectTo: '/home'
   }
 ];
 

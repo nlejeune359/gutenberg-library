@@ -28,7 +28,6 @@ export class HeaderComponent implements OnInit {
     if(name != '') {
       this.back.createUser(name).subscribe(
         user => {
-          console.log(user)
           localStorage.setItem('username', name)
           localStorage.setItem('id', user[name])
           this.username = name

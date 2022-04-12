@@ -16,7 +16,6 @@ export class SearchResultComponent implements OnInit {
   constructor(private router: Router,
     private back: BackendService) {
       const params = this.router.getCurrentNavigation()?.extras.state
-      console.log(this.router.getCurrentNavigation())
       if(params) {
         this.retrieveSearchResults(params)
       } else {
